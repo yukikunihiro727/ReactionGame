@@ -1,3 +1,4 @@
+
 const gameArea = document.getElementById("gameArea");
 const startBtn = document.getElementById("startBtn");
 const result = document.getElementById("result");
@@ -5,45 +6,65 @@ const result = document.getElementById("result");
 let startTime;
 let waiting = false;
 let ready = false;
+let timerId = null;
 
 startBtn.addEventListener("click", startGame);
 
+//クリック・タップ対応
+gameArea.addEventListener("pointerdown", react);
+
+//キーボード対応
+document.addEventListener("keydown", (e) => {
+    if (e.code === "Space" || e.code === "Enter") {
+        e.preventDefault();
+        react();
+    }
+});
+
 function startGame() {
-
     result.textContent = "";
-
     gameArea.style.background = "white";
     gameArea.textContent = "待機中...押さないで！";
 
     waiting = true;
     ready = false;
 
+    if (timerId !== null) {
+        clearTimeout(timerId);
+    }
+
     const delay = Math.random() * 3000 + 2000;
 
-    setTimeout(() => {
-
+    timerId = setTimeout(() => {
         gameArea.style.background = "lime";
-        gameArea.textContent = "クリック！";
+        gameArea.textContent = "今だ！クリック・タップ・キー入力！";
 
-        startTime = Date.now();
+        startTime = performance.now();
 
         waiting = false;
         ready = true;
-
     }, delay);
 }
 
-gameArea.addEventListener("click", () => {
-
-    if(waiting){
+function react() {
+    if (waiting) {
         result.textContent = "フライング！";
+
+        gameArea.style.background = "red";
+        gameArea.textContent = "早すぎます";
+
         waiting = false;
+        ready = false;
+
+        if (timerId !== null) {
+            clearTimeout(timerId);
+        }
+
         return;
     }
 
-    if(ready){
-
-        const reactionTime = Date.now() - startTime;
+    if (ready) {
+        const reactionTime = Math.round(performance.now() - startTime);
 
         result.innerHTML =
             `反応時間：${reactionTime} ms<br>${getRank(reactionTime)}`;
@@ -53,7 +74,7 @@ gameArea.addEventListener("click", () => {
 
         ready = false;
     }
-});
+}
 
 function getRank(time){
 
@@ -70,4 +91,31 @@ function getRank(time){
 	if(time < 300)
 		return "👍　Good";
     return "😊 Normal";
+}
+
+async function saveScore(name, reactionTime) {
+
+    try {
+
+        const response = await fetch(
+            "https://q4793y84vc.execute-api.ap-northeast-1.amazonaws.com/score",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: name,
+                    reactionTime: reactionTime
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        console.log(data);
+
+    } catch (error) {
+        console.error(error);
+    }
 }

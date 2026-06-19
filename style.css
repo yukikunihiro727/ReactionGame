@@ -1,0 +1,27 @@
+body{
+    font-family: sans-serif;
+    text-align:center;
+    background:#f0f0f0;
+}
+
+.container{
+    margin-top:50px;
+}
+
+#gameArea{
+    width:400px;
+    height:250px;
+    background:white;
+    border:3px solid black;
+    margin:20px auto;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:28px;
+    user-select:none;
+}
+
+button{
+    padding:10px 30px;
+    font-size:24px;
+}

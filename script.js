@@ -130,11 +130,18 @@ const rankingArea = document.getElementById("rankingArea");
 rankingBtn.addEventListener("click", loadRanking);
 
 async function loadRanking() {
+
+    console.log("ランキング取得開始");
+
     const response = await fetch(
         "https://q4793y84vc.execute-api.ap-northeast-1.amazonaws.com/ranking"
     );
 
+    console.log(response);
+
     const ranking = await response.json();
+
+    console.log(ranking);
 
     let html = "<h2>ランキング TOP10</h2>";
     html += "<ol>";

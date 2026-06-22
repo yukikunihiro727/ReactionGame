@@ -64,10 +64,16 @@ function react() {
     }
 
     if (ready) {
-        const reactionTime = Math.round(performance.now() - startTime);
+		const reactionTime = Math.round(performance.now() - startTime);
 
-        result.innerHTML =
-            `反応時間：${reactionTime} ms<br>${getRank(reactionTime)}`;
+		result.innerHTML =
+		    `反応時間：${reactionTime} ms<br>${getRank(reactionTime)}`;
+
+		const playerName = prompt("名前を入力してください");
+
+		if (playerName) {
+		    saveScore(playerName, reactionTime);
+		}
 
         gameArea.style.background = "white";
         gameArea.textContent = "もう一度挑戦できます";
@@ -94,9 +100,7 @@ function getRank(time){
 }
 
 async function saveScore(name, reactionTime) {
-
     try {
-
         const response = await fetch(
             "https://q4793y84vc.execute-api.ap-northeast-1.amazonaws.com/score",
             {
@@ -112,10 +116,9 @@ async function saveScore(name, reactionTime) {
         );
 
         const data = await response.json();
-
         console.log(data);
 
     } catch (error) {
-        console.error(error);
+        console.error("保存エラー:", error);
     }
 }

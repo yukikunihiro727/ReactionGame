@@ -1,31 +1,51 @@
-//https://yukikunihiro727.github.io/ReactionGame/
+// https://yukikunihiro727.github.io/ReactionGame/
 
+let scores = [];
+let challengeCount = 0;
+
+//定数
 const gameArea = document.getElementById("gameArea");
-const startBtn = document.getElementById("startBtn");
 const result = document.getElementById("result");
+const rankingBtn = document.getElementById("rankingBtn");
+const rankingArea = document.getElementById("rankingArea");
+const refreshBtn = document.getElementById("refreshBtn");
 
 let startTime;
 let waiting = false;
 let ready = false;
 let timerId = null;
 
-startBtn.addEventListener("click", startGame);
+gameArea.addEventListener("pointerdown", handleGameAreaClick);
 
-//クリック・タップ対応
-gameArea.addEventListener("pointerdown", react);
-
-//キーボード対応
 document.addEventListener("keydown", (e) => {
     if (e.code === "Space" || e.code === "Enter") {
         e.preventDefault();
-        react();
+        handleGameAreaClick();
     }
 });
 
+rankingBtn.addEventListener("click", loadRanking);
+refreshBtn.addEventListener(
+    "click",
+    loadRanking
+);
+
+function handleGameAreaClick() {
+    if (!waiting && !ready) {
+        startGame();
+        return;
+    }
+
+    react();
+}
+
 function startGame() {
     result.textContent = "";
-    gameArea.style.background = "white";
-    gameArea.textContent = "待機中...押さないで！";
+
+	gameArea.style.background = "#ff9800"; // 待機中：オレンジ
+	gameArea.style.borderColor = "#f57c00";
+	gameArea.style.color = "white";
+	gameArea.textContent = "緑に変わるまで待ってください...";
 
     waiting = true;
     ready = false;
@@ -37,8 +57,9 @@ function startGame() {
     const delay = Math.random() * 3000 + 2000;
 
     timerId = setTimeout(() => {
-        gameArea.style.background = "lime";
-        gameArea.textContent = "今だ！クリック・タップ・キー入力！";
+        gameArea.style.background = "#00c853";
+        gameArea.style.borderColor = "#00e676";
+        gameArea.textContent = "プッシュ！";
 
         startTime = performance.now();
 
@@ -51,8 +72,9 @@ function react() {
     if (waiting) {
         result.textContent = "フライング！";
 
-        gameArea.style.background = "red";
-        gameArea.textContent = "早すぎます";
+        gameArea.style.background = "#d50000";
+        gameArea.style.borderColor = "#ff1744";
+        gameArea.textContent = "早すぎます。\nClickまたはSpaceで再挑戦";
 
         waiting = false;
         ready = false;
@@ -65,38 +87,58 @@ function react() {
     }
 
     if (ready) {
-		const reactionTime = Math.round(performance.now() - startTime);
+        const reactionTime = Math.round(performance.now() - startTime);
 
-		result.innerHTML =
-		    `反応時間：${reactionTime} ms<br>${getRank(reactionTime)}`;
+        scores.push(reactionTime);
+        challengeCount++;
 
-		const playerName = prompt("名前を入力してください");
+        if (challengeCount < 3) {
+            result.innerHTML =
+                `反応時間：${reactionTime} ms<br>
+                ${challengeCount}/3 回終了<br>
+                あと ${3 - challengeCount} 回`;
 
-		if (playerName) {
-		    saveScore(playerName, reactionTime);
-		}
+            gameArea.style.background = "#e53935";
+            gameArea.style.borderColor = "#9c2756";
+            gameArea.textContent = "ClickまたはSpaceで次の測定";
+        } else {
+            const average = Math.round(
+                scores.reduce((a, b) => a + b, 0) / 3
+            );
 
-        gameArea.style.background = "white";
-        gameArea.textContent = "もう一度挑戦できます";
+            result.innerHTML =
+                `3回平均：${average} ms<br>
+                ${getRank(average)}`;
+
+            const playerName = prompt(
+				"名前を入力してください（ランキングに保存しない場合は'キャンセル'を押してください");
+			
+
+            if (playerName) {
+                saveScore(playerName, average);
+            }
+
+			scores = [];
+			challengeCount = 0;
+
+			gameArea.style.background = "white";
+			gameArea.style.borderColor = "#cccccc";
+			gameArea.style.color = "black";
+
+			gameArea.textContent = "ClickまたはSpaceで再挑戦";
+        }
 
         ready = false;
     }
 }
 
-function getRank(time){
-
-	if(time < 50)
-		return "Not Human";
-    if(time < 100)
-        return "🏆 GOD";
-    if(time < 150)
-        return "🥇 Excellent";
-    if(time < 200)
-        return "🥈 Great";
-    if(time < 250)
-        return "🥉 VeryGood";
-	if(time < 300)
-		return "👍　Good";
+function getRank(time) {
+    if (time < 50) return "Not Human";
+    if (time < 100) return "🏆 GOD";
+    if (time < 150) return "🥇 Excellent";
+    if (time < 200) return "🥈 Great";
+    if (time < 250) return "🥉 VeryGood";
+    if (time < 300) return "👍 Good";
     return "😊 Normal";
 }
 
@@ -124,33 +166,44 @@ async function saveScore(name, reactionTime) {
     }
 }
 
-const rankingBtn = document.getElementById("rankingBtn");
-const rankingArea = document.getElementById("rankingArea");
-
-rankingBtn.addEventListener("click", loadRanking);
-
 async function loadRanking() {
-
-    console.log("ランキング取得開始");
-
+	rankingArea.innerHTML =
+	        "<h2>ランキング取得中...</h2>";
+			
     const response = await fetch(
         "https://q4793y84vc.execute-api.ap-northeast-1.amazonaws.com/ranking"
     );
 
-    console.log(response);
-
     const ranking = await response.json();
 
-    console.log(ranking);
+    let html = `
+        <h2>🏆 ランキング TOP10</h2>
 
-    let html = "<h2>ランキング TOP10</h2>";
-    html += "<ol>";
+        <table class="ranking-table">
+            <tr>
+                <th>順位</th>
+                <th>名前</th>
+                <th>平均反応時間</th>
+            </tr>
+    `;
 
-    ranking.forEach(item => {
-        html += `<li>${item.name}：${item.reactionTime} ms</li>`;
+    ranking.forEach((item, index) => {
+        let medal = "";
+
+        if (index === 0) medal = "🥇";
+        else if (index === 1) medal = "🥈";
+        else if (index === 2) medal = "🥉";
+
+        html += `
+            <tr>
+                <td>${medal} ${index + 1}</td>
+                <td>${item.name}</td>
+                <td>${item.reactionTime} ms</td>
+            </tr>
+        `;
     });
 
-    html += "</ol>";
+    html += "</table>";
 
     rankingArea.innerHTML = html;
 }

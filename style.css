@@ -1,27 +1,96 @@
 body{
     font-family: sans-serif;
-    text-align:center;
-    background:#f0f0f0;
+    text-align: center;
+    background: #35569b;
+    color: white;
+    margin: 0;
 }
 
 .container{
-    margin-top:50px;
+    margin-top: 50px;
+    text-align: center;
+}
+
+h1{
+    font-size: 48px;
 }
 
 #gameArea{
-    width:400px;
-    height:250px;
-    background:white;
-    border:3px solid black;
-    margin:20px auto;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:28px;
-    user-select:none;
+    width: 500px;
+    height: 300px;
+
+    background: white;
+    border: 8px solid #cccccc;
+
+    margin: 30px auto;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 36px;
+    user-select: none;
+    cursor: pointer;
+
+    color: black;
+    font-weight: bold;
 }
 
 button{
-    padding:10px 30px;
-    font-size:24px;
+    padding: 10px 30px;
+    font-size: 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#result{
+    font-size: 34px;
+}
+
+#rankingArea{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#rankingArea h2{
+    font-size: 40px;
+}
+
+.ranking-table{
+    margin: 20px auto;
+    border-collapse: collapse;
+    width: 500px;
+    table-layout: fixed;
+    background: white;
+    color: black;
+}
+
+.ranking-table th,
+.ranking-table td{
+    text-align: center;
+    padding: 12px;
+    border: 1px solid #ddd;
+}
+
+.ranking-table th{
+    font-size: 26px;
+    background: #4CAF50;
+    color: white;
+}
+
+.ranking-table td{
+    font-size: 24px;
+}
+
+#rankingBtn{
+    background:#4CAF50;
+    color:white;
+}
+
+#refreshBtn{
+    background:#2196F3;
+    color:white;
+    margin-left:10px;
 }

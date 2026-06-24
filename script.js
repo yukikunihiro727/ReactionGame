@@ -1,15 +1,23 @@
 // https://yukikunihiro727.github.io/ReactionGame/
 
-let scores = [];
-let challengeCount = 0;
+let scores = [];	//反応時間保存
+let challengeCount = 0;		//回数保存
 
-//定数
+//定数(調整できるようhtmlから取得)
 const gameArea = document.getElementById("gameArea");
 const result = document.getElementById("result");
 const rankingBtn = document.getElementById("rankingBtn");
 const rankingArea = document.getElementById("rankingArea");
-const refreshBtn = document.getElementById("refreshBtn");
+//const refreshBtn = document.getElementById("refreshBtn");
+const nameModal = document.getElementById("nameModal");
 
+const playerNameInput = document.getElementById("playerNameInput");
+
+const saveBtn = document.getElementById("saveBtn");
+
+const cancelBtn = document.getElementById("cancelBtn");
+
+let averageScore = 0;
 let startTime;
 let waiting = false;
 let ready = false;
@@ -18,6 +26,11 @@ let timerId = null;
 gameArea.addEventListener("pointerdown", handleGameAreaClick);
 
 document.addEventListener("keydown", (e) => {
+    //名前入力画面が開いている間はゲーム操作しない
+    if (nameModal.style.display === "flex") {
+        return;
+    }
+		
     if (e.code === "Space" || e.code === "Enter") {
         e.preventDefault();
         handleGameAreaClick();
@@ -25,12 +38,14 @@ document.addEventListener("keydown", (e) => {
 });
 
 rankingBtn.addEventListener("click", loadRanking);
-refreshBtn.addEventListener(
-    "click",
-    loadRanking
-);
 
 function handleGameAreaClick() {
+	
+    // 名前入力画面が開いている間はゲーム操作しない
+    if (nameModal.style.display === "flex") {
+        return;
+    }
+		
     if (!waiting && !ready) {
         startGame();
         return;
@@ -39,6 +54,8 @@ function handleGameAreaClick() {
     react();
 }
 
+
+//ゲーム開始
 function startGame() {
     result.textContent = "";
 
@@ -68,13 +85,14 @@ function startGame() {
     }, delay);
 }
 
+//処理
 function react() {
     if (waiting) {
         result.textContent = "フライング！";
 
         gameArea.style.background = "#d50000";
         gameArea.style.borderColor = "#ff1744";
-        gameArea.textContent = "早すぎます。\nClickまたはSpaceで再挑戦";
+        gameArea.textContent = "早すぎます。ClickまたはSpaceで再挑戦";
 
         waiting = false;
         ready = false;
@@ -110,13 +128,11 @@ function react() {
                 `3回平均：${average} ms<br>
                 ${getRank(average)}`;
 
-            const playerName = prompt(
-				"名前を入力してください（ランキングに保存しない場合は'キャンセル'を押してください");
-			
+				averageScore = average;
 
-            if (playerName) {
-                saveScore(playerName, average);
-            }
+				playerNameInput.value = "";
+
+				nameModal.style.display = "flex";
 
 			scores = [];
 			challengeCount = 0;
@@ -132,6 +148,7 @@ function react() {
     }
 }
 
+//ランク取得
 function getRank(time) {
     if (time < 50) return "Not Human";
     if (time < 100) return "🏆 GOD";
@@ -142,6 +159,7 @@ function getRank(time) {
     return "😊 Normal";
 }
 
+//スコア保存(非同期処理)
 async function saveScore(name, reactionTime) {
     try {
         const response = await fetch(
@@ -157,7 +175,8 @@ async function saveScore(name, reactionTime) {
                 })
             }
         );
-
+		
+		//処理が終わるまで待つ
         const data = await response.json();
         console.log(data);
 
@@ -166,6 +185,7 @@ async function saveScore(name, reactionTime) {
     }
 }
 
+//ランキング読み込み
 async function loadRanking() {
 	rankingArea.innerHTML =
 	        "<h2>ランキング取得中...</h2>";
@@ -207,3 +227,24 @@ async function loadRanking() {
 
     rankingArea.innerHTML = html;
 }
+
+saveBtn.addEventListener("click", () => {
+
+    const playerName =
+        playerNameInput.value.trim();
+
+    if(playerName !== ""){
+
+        saveScore(
+            playerName,
+            averageScore
+        );
+    }
+
+    nameModal.style.display = "none";
+});
+
+cancelBtn.addEventListener("click", () => {
+
+    nameModal.style.display = "none";
+});
